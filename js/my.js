@@ -3,22 +3,42 @@ $(document).ready(function() {
         var velocityData = [];
         var burnUpData = []
         var cumulativePoints = 0;
+        var iterations = 0;
+        var maxValue = 0;
+        var iterationValue;
+        
         $("input").each( function(index) {
-            if ($(this).val().replace(" ","") == "") {
+            iterationValue = $(this).val(); 
+            
+            if (iterationValue.replace(" ","") == "") {
                 velocityData[index] = [index+1, 0];
                 cumulativePoints += 0;
             } else {
                 velocityData[index] = [index+1, $(this).val()];
-                cumulativePoints += parseInt($(this).val());
+                cumulativePoints += parseInt(iterationValue);
+                if (parseInt(iterationValue) > maxValue) {
+                    maxValue = parseInt(iterationValue);
+                }
             }
+            
             burnUpData[index] = [index+1, cumulativePoints];
+            iterations += 1;
         });
         if (velocityData.length == 0) {
-            return({velocityData: [[[]]], burnUpData: [[[]]]});
+            return({
+                velocityData: [[[]]],
+                burnUpData: [[[]]],
+                maxValue: 0,
+                iterations: 0,
+                maxCumValue: 0
+            });
         }
         var computedResults = {
             velocityData: [velocityData],
-            burnUpData: [burnUpData]
+            burnUpData: [burnUpData],
+            maxValue: maxValue,
+            iterations: iterations,
+            maxCumValue: cumulativePoints
         }
         return computedResults; // Consider returning an object with cumulative points and num iterations to help draw the axes
     };
@@ -29,12 +49,12 @@ $(document).ready(function() {
             xaxis: {
                 min: 0,
                 max: 10,
-                numberTicks: 11
+                numberTicks: 6
             },
             yaxis: {
                 min: 0,
                 max: 100,
-                numberTicks: 11
+                numberTicks: 6
             }        
         }
     });
@@ -45,45 +65,51 @@ $(document).ready(function() {
             xaxis: {
                 min: 0,
                 max: 10,
-                numberTicks: 11
+                numberTicks: 6
             },
             yaxis: {
                 min: 0,
                 max: 100,
-                numberTicks: 11
+                numberTicks: 6
             }        
         }
     });
     
     var replot = function() {
+        var dataResults = ddata();
+        
+        var maxY = Math.round(dataResults.maxValue * 1.33 + (5 - dataResults.maxValue * 1.33 % 5))
+        var maxCumY = Math.round(dataResults.maxCumValue * 1.1 + (5 - dataResults.maxCumValue * 1.1 % 5))
+        
+        //Calculate numberTicks and max so that the ticks come out as integers
         velocityPlot.replot({
-            data: ddata().velocityData,
+            data: dataResults.velocityData,
             axes: {
                 xaxis: {
                     min: 0,
-                    max: 10,
-                    numberTicks: 11
+                    max: dataResults.iterations + 1,
+                    numberTicks: dataResults.iterations + 2
                 },
                 yaxis: {
                     min: 0,
-                    max: 100,
-                    numberTicks: 11
+                    max: maxY,
+                    numberTicks: 6
                 }        
             }
         });
         
         burnUpPlot.replot({
-            data: ddata().burnUpData,
+            data: dataResults.burnUpData,
             axes: {
                 xaxis: {
                     min: 0,
-                    max: 10,
-                    numberTicks: 11
+                    max: dataResults.iterations * 2,
+                    numberTicks: dataResults.iterations * 2 + 1
                 },
                 yaxis: {
                     min: 0,
-                    max: 100,
-                    numberTicks: 11
+                    max: maxCumY,
+                    numberTicks: 6
                 }        
             }
         });
