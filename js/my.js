@@ -14,12 +14,16 @@ $(document).ready(function() {
             burnUpData[index] = [index+1, cumulativePoints];
         });
         if (velocityData.length == 0) {
-            return([[[]],[[]]]);
+            return({velocityData: [[[]]], burnUpData: [[[]]]});
         }
-        return [velocityData,burnUpData]; // Consider returning an object with cumulative points and num iterations to help draw the axes
+        var computedResults = {
+            velocityData: [velocityData],
+            burnUpData: [burnUpData]
+        }
+        return computedResults; // Consider returning an object with cumulative points and num iterations to help draw the axes
     };
     
-    var velocityPlot = $.jqplot('velocityPlot',  [ddata()[0]], {            
+    var velocityPlot = $.jqplot('velocityPlot',  ddata().velocityData, {            
         title: "Velocity",
         axes: {
             xaxis: {
@@ -35,7 +39,7 @@ $(document).ready(function() {
         }
     });
     
-    var burnUpPlot = $.jqplot('burnUpPlot',  [ddata()[1]], {            
+    var burnUpPlot = $.jqplot('burnUpPlot',  ddata().burnUpData, {            
         title: "Burn Up",
         axes: {
             xaxis: {
@@ -53,7 +57,7 @@ $(document).ready(function() {
     
     var replot = function() {
         velocityPlot.replot({
-            data: [ddata()[0]],
+            data: ddata().velocityData,
             axes: {
                 xaxis: {
                     min: 0,
@@ -69,7 +73,7 @@ $(document).ready(function() {
         });
         
         burnUpPlot.replot({
-            data: [ddata()[1]],
+            data: ddata().burnUpData,
             axes: {
                 xaxis: {
                     min: 0,
@@ -89,7 +93,7 @@ $(document).ready(function() {
         replot();
     }
     
-    $("input").on("keyup", function(event) {
+    $("#iterations input").on("keyup", function(event) {
        var that = $(this);
        handleIterationKeyUp(that);
     });
