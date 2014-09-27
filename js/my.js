@@ -1,5 +1,40 @@
+var MonteCarlo = {
+    calculate: function(totalScope, historicalVelocity) {
+        //historical velocity is 1-D array left to right (not that order matters)
+        var totalRuns = 100000;
+        var monteCarloRunResults = {};
+        
+        var numDataPoints = historicalVelocity.length;
+        var key, iteration, startingAmount = 0;
+        
+        for(key in historicalVelocity) {
+            startingAmount += historicalVelocity[key];
+        }
+        
+        
+        for(var i=0 ; i < totalRuns ; i++) {
+            //Each run calculates which iteration total scope will be reached
+            cumulativeTotal = startingAmount;
+            iteration = numDataPoints;
+            while (cumulativeTotal < totalScope) {
+                cumulativeTotal += historicalVelocity[Math.floor(Math.random() * numDataPoints)];
+                iteration++;
+            }
+            if (monteCarloRunResults[iteration] === undefined) {
+                monteCarloRunResults[iteration] = 1;
+            } else {
+                monteCarloRunResults[iteration] = monteCarloRunResults[iteration] + 1;
+            }
+            
+        }
+        
+        return monteCarloRunResults;   
+    }
+}
+
 $(document).ready(function() {
     var ddata = function() {
+        var rawVelocityData = [];
         var velocityData = [];
         var burnUpData = []
         var cumulativePoints = 0;
@@ -13,9 +48,11 @@ $(document).ready(function() {
             
             if (iterationValue.replace(" ","") == "") {
                 velocityData[index] = [index+1, 0];
+                rawVelocityData.push(0);
                 cumulativePoints += 0;
             } else {
                 velocityData[index] = [index+1, $(this).val()];
+                rawVelocityData.push(parseInt(iterationValue));
                 cumulativePoints += parseInt(iterationValue);
                 if (parseInt(iterationValue) > maxValue) {
                     maxValue = parseInt(iterationValue);
@@ -33,7 +70,8 @@ $(document).ready(function() {
                 maxValue: 0,
                 iterations: 0,
                 maxCumValue: 0,
-                totalScope: 0
+                totalScope: 0,
+                monteCarlo: MonteCarlo.calculate(0,rawVelocityData)
             });
         }
         
@@ -45,7 +83,8 @@ $(document).ready(function() {
             maxValue: maxValue,
             iterations: iterations,
             maxCumValue: cumulativePoints,
-            totalScope: totalScope
+            totalScope: totalScope,
+            monteCarlo: MonteCarlo.calculate(totalScope,rawVelocityData)
         }
         return computedResults; // Consider returning an object with cumulative points and num iterations to help draw the axes
     };
@@ -84,6 +123,17 @@ $(document).ready(function() {
     
     var replot = function() {
         var dataResults = ddata();
+        
+        $("#monte").empty();
+        $("#monte").append("<h4>Likelihood of completion</h4>");
+        
+        var key, chance, cumulativeChance = 0;
+        for(key in dataResults.monteCarlo) {
+            chance = dataResults.monteCarlo[key] / 1000;
+            cumulativeChance += chance;
+            $("#monte").append("<p>In iteration " + key + ": " + chance.toFixed(0) + "% and by iteration " + key + ": " + cumulativeChance.toFixed(0) + "%</p>");
+        }
+        
         var maxBurnupValue = Math.max(dataResults.totalScope, dataResults.maxCumValue);
         
         var maxY = Math.round(dataResults.maxValue * 1.33 + (5 - dataResults.maxValue * 1.33 % 5))
