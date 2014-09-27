@@ -127,7 +127,7 @@ $(document).ready(function() {
         $("#monte").empty();
         $("#monte").append("<h4>Likelihood of completion</h4>");
         
-        var key, chance, cumulativeChance = 0;
+        var key, chance, cumulativeChance = 0;  
         for(key in dataResults.monteCarlo) {
             chance = dataResults.monteCarlo[key] / 1000;
             cumulativeChance += chance;
@@ -136,8 +136,10 @@ $(document).ready(function() {
         
         var maxBurnupValue = Math.max(dataResults.totalScope, dataResults.maxCumValue);
         
-        var maxY = Math.round(dataResults.maxValue * 1.33 + (5 - dataResults.maxValue * 1.33 % 5))
-        var maxCumY = Math.round(maxBurnupValue * 1.1 + (5 - maxBurnupValue * 1.1 % 5))
+        var maxY = Math.round(dataResults.maxValue * 1.33 + (5 - dataResults.maxValue * 1.33 % 5));
+        var maxCumY = Math.round(maxBurnupValue * 1.1 + (5 - maxBurnupValue * 1.1 % 5));
+        var maxLikelyIteration = parseInt(key);
+        var maxCumX = Math.round(maxLikelyIteration + (5 - maxLikelyIteration % 5)); 
         
         velocityPlot.replot({
             data: dataResults.velocityData,
@@ -156,7 +158,7 @@ $(document).ready(function() {
         });
         
         var totalScope = [];
-        for(var i=0 ; i < dataResults.iterations * 2 ; i++ ) {
+        for(var i=0 ; i < maxLikelyIteration ; i++ ) {
             totalScope[i] = [i+1,dataResults.totalScope];
         }
         dataResults.burnUpData.push(totalScope);
@@ -166,8 +168,8 @@ $(document).ready(function() {
             axes: {
                 xaxis: {
                     min: 0,
-                    max: dataResults.iterations * 2,
-                    numberTicks: dataResults.iterations * 2 + 1
+                    max: maxCumX,
+                    numberTicks: 6
                 },
                 yaxis: {
                     min: 0,
