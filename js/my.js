@@ -1,20 +1,42 @@
 $(document).ready(function() {
     var ddata = function() {
-        var data = [];
+        var velocityData = [];
+        var burnUpData = []
+        var cumulativePoints = 0;
         $("input").each( function(index) {
             if ($(this).val().replace(" ","") == "") {
-                data[index] = [index+1, 0];
+                velocityData[index] = [index+1, 0];
+                cumulativePoints += 0;
             } else {
-            data[index] = [index+1, $(this).val()];
+                velocityData[index] = [index+1, $(this).val()];
+                cumulativePoints += parseInt($(this).val());
             }
+            burnUpData[index] = [index+1, cumulativePoints];
         });
-        if (data.length == 0) {
-            return([[[]]]);
+        if (velocityData.length == 0) {
+            return([[[]],[[]]]);
         }
-        return [data]; // Consider returning an object with cumulative points and num iterations to help draw the axes
+        return [velocityData,burnUpData]; // Consider returning an object with cumulative points and num iterations to help draw the axes
     };
     
-    var plot1 = $.jqplot('velocityPlot',  ddata(), {            
+    var velocityPlot = $.jqplot('velocityPlot',  [ddata()[0]], {            
+        title: "Velocity",
+        axes: {
+            xaxis: {
+                min: 0,
+                max: 10,
+                numberTicks: 11
+            },
+            yaxis: {
+                min: 0,
+                max: 100,
+                numberTicks: 11
+            }        
+        }
+    });
+    
+    var burnUpPlot = $.jqplot('burnUpPlot',  [ddata()[1]], {            
+        title: "Burn Up",
         axes: {
             xaxis: {
                 min: 0,
@@ -30,8 +52,24 @@ $(document).ready(function() {
     });
     
     var replot = function() {
-        plot1.replot({
-            data: ddata(),
+        velocityPlot.replot({
+            data: [ddata()[0]],
+            axes: {
+                xaxis: {
+                    min: 0,
+                    max: 10,
+                    numberTicks: 11
+                },
+                yaxis: {
+                    min: 0,
+                    max: 100,
+                    numberTicks: 11
+                }        
+            }
+        });
+        
+        burnUpPlot.replot({
+            data: [ddata()[1]],
             axes: {
                 xaxis: {
                     min: 0,
