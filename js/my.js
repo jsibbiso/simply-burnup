@@ -14,7 +14,7 @@ $(document).ready(function() {
         return [data]; // Consider returning an object with cumulative points and num iterations to help draw the axes
     };
     
-    var plot1 = $.jqplot('chartdiv',  ddata(), {            
+    var plot1 = $.jqplot('velocityPlot',  ddata(), {            
         axes: {
             xaxis: {
                 min: 0,
@@ -47,14 +47,20 @@ $(document).ready(function() {
         });
     }
     
+    var handleIterationKeyUp = function(input) {
+        replot();
+    }
+    
     $("input").on("keyup", function(event) {
-       replot();
+       var that = $(this);
+       handleIterationKeyUp(that);
     });
     
     $("#iterationModifiers a#addIteration").on("click", function() {
         $("#iterations").append('<div><label>Iteration</label><input type="text" value=""></input></div>');
         $("#iterations input").last().on("keyup", function() {
-           replot();
+            var that = $(this);
+            handleIterationKeyUp(that);
         });
     });
     
