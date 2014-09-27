@@ -3,7 +3,7 @@ $(document).ready(function() {
         var data = [];
         $("input").each( function(index) {
             if ($(this).val().replace(" ","") == "") {
-                //do nothing
+                data[index] = [index+1, 0];
             } else {
             data[index] = [index+1, $(this).val()];
             }
@@ -57,7 +57,8 @@ $(document).ready(function() {
     });
     
     $("#iterationModifiers a#addIteration").on("click", function() {
-        $("#iterations").append('<div><label>Iteration</label><input type="text" value=""></input></div>');
+        var nextIteration = $("#iterations input").length + 1;
+        $("#iterations").append('<div><label>Iteration ' + nextIteration + '</label><input type="text" value=""></input></div>');
         $("#iterations input").last().on("keyup", function() {
             var that = $(this);
             handleIterationKeyUp(that);
