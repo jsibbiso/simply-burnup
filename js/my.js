@@ -6,9 +6,10 @@ $(document).ready(function() {
         var iterations = 0;
         var maxValue = 0;
         var iterationValue;
+        var totalScope;
         
-        $("input").each( function(index) {
-            iterationValue = $(this).val(); 
+        $("#iterations input").each( function(index) {
+            iterationValue = $(this).val();
             
             if (iterationValue.replace(" ","") == "") {
                 velocityData[index] = [index+1, 0];
@@ -24,21 +25,27 @@ $(document).ready(function() {
             burnUpData[index] = [index+1, cumulativePoints];
             iterations += 1;
         });
+        
         if (velocityData.length == 0) {
             return({
                 velocityData: [[[]]],
                 burnUpData: [[[]]],
                 maxValue: 0,
                 iterations: 0,
-                maxCumValue: 0
+                maxCumValue: 0,
+                totalScope: 0
             });
         }
+        
+        if ($("#totalScope").val().replace(" ","") == "") { totalScope = 0; } else { totalScope = parseInt($("#totalScope").val()); }
+        
         var computedResults = {
             velocityData: [velocityData],
             burnUpData: [burnUpData],
             maxValue: maxValue,
             iterations: iterations,
-            maxCumValue: cumulativePoints
+            maxCumValue: cumulativePoints,
+            totalScope: totalScope
         }
         return computedResults; // Consider returning an object with cumulative points and num iterations to help draw the axes
     };
@@ -77,11 +84,11 @@ $(document).ready(function() {
     
     var replot = function() {
         var dataResults = ddata();
+        var maxBurnupValue = Math.max(dataResults.totalScope, dataResults.maxCumValue);
         
         var maxY = Math.round(dataResults.maxValue * 1.33 + (5 - dataResults.maxValue * 1.33 % 5))
-        var maxCumY = Math.round(dataResults.maxCumValue * 1.1 + (5 - dataResults.maxCumValue * 1.1 % 5))
+        var maxCumY = Math.round(maxBurnupValue * 1.1 + (5 - maxBurnupValue * 1.1 % 5))
         
-        //Calculate numberTicks and max so that the ticks come out as integers
         velocityPlot.replot({
             data: dataResults.velocityData,
             axes: {
@@ -97,6 +104,12 @@ $(document).ready(function() {
                 }        
             }
         });
+        
+        var totalScope = [];
+        for(var i=0 ; i < dataResults.iterations * 2 ; i++ ) {
+            totalScope[i] = [i+1,dataResults.totalScope];
+        }
+        dataResults.burnUpData.push(totalScope);
         
         burnUpPlot.replot({
             data: dataResults.burnUpData,
@@ -119,7 +132,7 @@ $(document).ready(function() {
         replot();
     }
     
-    $("#iterations input").on("keyup", function(event) {
+    $("input").on("keyup", function(event) {
        var that = $(this);
        handleIterationKeyUp(that);
     });
