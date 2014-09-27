@@ -11,7 +11,7 @@ $(document).ready(function() {
         if (data.length == 0) {
             return([[[]]]);
         }
-        return [data];
+        return [data]; // Consider returning an object with cumulative points and num iterations to help draw the axes
     };
     
     var plot1 = $.jqplot('chartdiv',  ddata(), {            
@@ -29,7 +29,7 @@ $(document).ready(function() {
         }
     });
     
-    $("input").on("change", function(event) {
+    var replot = function() {
         plot1.replot({
             data: ddata(),
             axes: {
@@ -45,6 +45,22 @@ $(document).ready(function() {
                 }        
             }
         });
+    }
+    
+    $("input").on("keyup", function(event) {
+       replot();
+    });
+    
+    $("#iterationModifiers a#addIteration").on("click", function() {
+        $("#iterations").append('<div><label>Iteration</label><input type="text" value=""></input></div>');
+        $("#iterations input").last().on("keyup", function() {
+           replot();
+        });
+    });
+    
+    $("#iterationModifiers a#removeIteration").on("click", function() {
+        $("#iterations div").last().remove();
+        replot();
     });
 });
 
