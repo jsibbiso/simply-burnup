@@ -256,7 +256,7 @@ $(document).ready(function() {
             fillBetween: {
                 series1: 2,
                 series2: 3,
-                color: "rgba(0, 200, 200, 0.15)",
+                color: "rgba(25, 175, 175, 0.2)",
                 baseSeries: 0,
                 fill: true
             },
@@ -273,7 +273,13 @@ $(document).ready(function() {
     });
     
     $("#estimationType").on("change", function() {
-       alert($(this).val()); 
+        if($(this).val() == 'custom') {
+            $("#monteCarloResults").hide();
+            $("#customVelocityParams").show();
+        } else {
+            $("#monteCarloResults").show();
+            $("#customVelocityParams").hide();
+        }
     });
     
     $("#iterationModifiers a#addIteration").on("click", function() {
@@ -289,5 +295,9 @@ $(document).ready(function() {
         $("#iterations div").last().remove();
         replot();
     });
+    
+    //Set initial hide and show
+    $("#monteCarloResults").show();
+    $("#customVelocityParams").hide();
 });
 
