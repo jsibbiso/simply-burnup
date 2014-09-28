@@ -11,6 +11,10 @@ var MonteCarlo = {
             startingAmount += historicalVelocity[key];
         }
         
+        if (startingAmount == 0) {
+            //No velocity yet
+            return {};
+        }
         
         for(var i=0 ; i < totalRuns ; i++) {
             //Each run calculates which iteration total scope will be reached
