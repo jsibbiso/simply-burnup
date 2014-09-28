@@ -41,27 +41,13 @@ var Lines = {
         var line = [];
         var curr = y1;
         var llinterval = (y2max - y1) / (x2 - x1);
-        for(i = x1 ; curr < y2max ; i++ ) {
+        for(var i = x1 ; curr < y2max ; i++ ) {
             line[i-x1] = [i,curr];
             curr += llinterval;
         }
         line[i-x1] = [i,y2max]; // Add last iteration
-        
         return line;
-    },
-    makeLineUsingYInterval: function(x1, x2, y1, y2max, yInterval) {
-        var line = [];
-        var curr = y1;
-
-        for(i = x1 ; curr < y2max ; i++ ) {
-            line[i-x1] = [i,curr];
-            curr += yInterval;
-        }
-        line[i-x1] = [i,y2max]; // Add last iteration
-        
-        return line;
-    },
-    
+    }
 }
 
 $(document).ready(function() {
@@ -158,26 +144,9 @@ $(document).ready(function() {
         var dataResults = ddata();
         
         $("#monteCarloResults").empty();
-        $("#monteCarloResults").append("<h4>Likelihood of completion</h4>");
-        
-        var key, chance, cumulativeChance = 0, minLikelyIteration = 999;  
-        for(key in dataResults.monteCarlo) {
-            if (parseInt(key) < minLikelyIteration) {
-                minLikelyIteration = parseInt(key);
-            }
-            
-            chance = dataResults.monteCarlo[key] / 1000;
-            cumulativeChance += chance;
-            $("#monteCarloResults").append("<p>In iteration " + key + ": " + chance.toFixed(0) + "% and by iteration " + key + ": " + cumulativeChance.toFixed(0) + "%</p>");
-        }
-        
-        var maxBurnupValue = Math.max(dataResults.totalScope, dataResults.maxCumValue);
+        $("#customVelocityResults").empty();
         
         var maxY = Math.round(dataResults.maxValue * 1.33 + (5 - dataResults.maxValue * 1.33 % 5));
-        var maxCumY = Math.round(maxBurnupValue * 1.1 + (5 - maxBurnupValue * 1.1 % 5));
-
-        var maxLikelyIteration = parseInt(key);
-        var maxCumX = Math.round(maxLikelyIteration + (5 - maxLikelyIteration % 5)); 
         
         velocityPlot.replot({
             data: dataResults.velocityData,
@@ -205,21 +174,72 @@ $(document).ready(function() {
             ]
         });
         
+        var maxLikelyIteration, minLikelyIteration, longestLikelihood, shortestLikelihood;
+        
+        if(customBurnupMode) {
+            var customVelocity = parseInt($("#customVelocity").val());
+            var posConePerc = parseFloat($("#posVelocityPerc").val()) || 0;
+            var negConePerc = parseFloat($("#negVelocityPerc").val()) || 0;
+            if(negConePerc >= 100) { negConePerc = 90; }
+            
+            if (customVelocity) {
+                $("#customVelocityResults").append("<h4>Expected completion boundaries</h4>");
+                
+                //Setup data
+                minLikelyIteration = Math.ceil(dataResults.iterations +
+                    ( (dataResults.totalScope - dataResults.maxCumValue) /
+                        (customVelocity * (1 + posConePerc / 100)) ) );
+                maxLikelyIteration = Math.ceil(dataResults.iterations +
+                    ( (dataResults.totalScope - dataResults.maxCumValue) /
+                        (customVelocity * (1 - negConePerc / 100)) ) );
+                
+                $("#customVelocityResults").append("<p>Earliest is iteration " + minLikelyIteration + "</p>");
+                $("#customVelocityResults").append("<p>Latest is iteration " + maxLikelyIteration + "</p>");
+                
+                //Draw lines
+                longestLikelihood = Lines.makeLine(dataResults.iterations, maxLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
+                shortestLikelihood = Lines.makeLine(dataResults.iterations, minLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
+                
+                dataResults.burnUpData.push(shortestLikelihood);
+                dataResults.burnUpData.push(longestLikelihood);
+            }
+            
+        } else { //Monte Carlo mode
+            $("#monteCarloResults").append("<h4>Likelihood of completion</h4>");
+            
+            var key, chance, cumulativeChance = 0;
+            minLikelyIteration = 999;
+            
+            //Setup data
+            for(key in dataResults.monteCarlo) {
+                if (parseInt(key) < minLikelyIteration) {
+                    minLikelyIteration = parseInt(key);
+                }
+                
+                chance = dataResults.monteCarlo[key] / 1000;
+                cumulativeChance += chance;
+                $("#monteCarloResults").append("<p>In iteration " + key + ": " + chance.toFixed(0) + "% and by iteration " + key + ": " + cumulativeChance.toFixed(0) + "%</p>");
+            }
+    
+            maxLikelyIteration = parseInt(key);
+            
+            //Draw lines
+            longestLikelihood = Lines.makeLine(dataResults.iterations, maxLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
+            shortestLikelihood = Lines.makeLine(dataResults.iterations, minLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
+            
+            dataResults.burnUpData.push(shortestLikelihood);
+            dataResults.burnUpData.push(longestLikelihood);
+        }
+        
         var totalScope = [];
         for(var i=0 ; i < maxLikelyIteration ; i++ ) {
             totalScope[i] = [i+1,dataResults.totalScope];
         }
         dataResults.burnUpData.push(totalScope);
         
-        if(customBurnupMode) {
-            
-        } else { //Monte Carlo mode
-            var longestLikelihood = Lines.makeLine(dataResults.iterations, maxLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
-            var shortestLikelihood = Lines.makeLine(dataResults.iterations, minLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
-            
-            dataResults.burnUpData.push(shortestLikelihood);
-            dataResults.burnUpData.push(longestLikelihood);
-        }
+        var maxBurnupValue = Math.max(dataResults.totalScope, dataResults.maxCumValue);
+        var maxCumY = Math.round(maxBurnupValue * 1.1 + (5 - maxBurnupValue * 1.1 % 5));
+        var maxCumX = Math.round(maxLikelyIteration + (5 - maxLikelyIteration % 5));
         
         burnUpPlot.replot({
             data: dataResults.burnUpData,
@@ -242,6 +262,14 @@ $(document).ready(function() {
                     }
                 },
                 {
+                    showMarker: false,
+                    showLine: false,
+                },
+                {
+                    showMarker: false,
+                    showLine: false,
+                },
+                {
                     lineWidth: 1,
                     showMarker: true,
                     markerOptions: {
@@ -250,18 +278,10 @@ $(document).ready(function() {
                         size: 1
                     },
                 },
-                {
-                    showMarker: false,
-                    showLine: false,
-                },
-                {
-                    showMarker: false,
-                    showLine: false,
-                },
             ],
             fillBetween: {
-                series1: 2,
-                series2: 3,
+                series1: 1,
+                series2: 2,
                 color: "rgba(25, 175, 175, 0.2)",
                 baseSeries: 0,
                 fill: true
@@ -282,12 +302,11 @@ $(document).ready(function() {
         if($(this).val() == 'custom') {
             $("#monteCarloResults").hide();
             $("#customVelocityParams").show();
-            replot();
         } else {
             $("#monteCarloResults").show();
             $("#customVelocityParams").hide();
-            replot();
         }
+        replot();
     });
     
     $("#iterationModifiers a#addIteration").on("click", function() {
