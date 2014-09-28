@@ -178,7 +178,17 @@ $(document).ready(function() {
                     max: maxY,
                     numberTicks: 6
                 }        
-            }
+            },
+            series: [
+                {
+                    markerOptions: {
+                        size: 7
+                    },
+                    rendererOptions: {
+                       smooth: true
+                    }
+                }
+            ]
         });
         
         var totalScope = [];
@@ -206,6 +216,30 @@ $(document).ready(function() {
                     numberTicks: 6
                 }        
             },
+            series: [
+                {
+                    markerOptions: {
+                        size: 7
+                    }
+                },
+                {
+                    lineWidth: 1,
+                    showMarker: true,
+                    markerOptions: {
+                        style: 'dash',
+                        lineWidth: 10,
+                        size: 1
+                    },
+                },
+                {
+                    showMarker: false,
+                    showLine: false,
+                },
+                {
+                    showMarker: false,
+                    showLine: false,
+                },
+            ],
             fillBetween: {
                 series1: 2,
                 series2: 3,
