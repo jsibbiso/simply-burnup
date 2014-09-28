@@ -154,6 +154,7 @@ $(document).ready(function() {
     });
     
     var replot = function() {
+        var customBurnupMode = $("#estimationType").val() == 'custom';
         var dataResults = ddata();
         
         $("#monteCarloResults").empty();
@@ -208,12 +209,17 @@ $(document).ready(function() {
         for(var i=0 ; i < maxLikelyIteration ; i++ ) {
             totalScope[i] = [i+1,dataResults.totalScope];
         }
-        
-        var longestLikelihood = Lines.makeLine(dataResults.iterations, maxLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
-        var shortestLikelihood = Lines.makeLine(dataResults.iterations, minLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
         dataResults.burnUpData.push(totalScope);
-        dataResults.burnUpData.push(shortestLikelihood);
-        dataResults.burnUpData.push(longestLikelihood);
+        
+        if(customBurnupMode) {
+            
+        } else { //Monte Carlo mode
+            var longestLikelihood = Lines.makeLine(dataResults.iterations, maxLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
+            var shortestLikelihood = Lines.makeLine(dataResults.iterations, minLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
+            
+            dataResults.burnUpData.push(shortestLikelihood);
+            dataResults.burnUpData.push(longestLikelihood);
+        }
         
         burnUpPlot.replot({
             data: dataResults.burnUpData,
@@ -276,9 +282,11 @@ $(document).ready(function() {
         if($(this).val() == 'custom') {
             $("#monteCarloResults").hide();
             $("#customVelocityParams").show();
+            replot();
         } else {
             $("#monteCarloResults").show();
             $("#customVelocityParams").hide();
+            replot();
         }
     });
     
@@ -299,5 +307,6 @@ $(document).ready(function() {
     //Set initial hide and show
     $("#monteCarloResults").show();
     $("#customVelocityParams").hide();
+    replot();
 });
 
