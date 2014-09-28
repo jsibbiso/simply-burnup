@@ -272,6 +272,10 @@ $(document).ready(function() {
        handleIterationKeyUp(that);
     });
     
+    $("#estimationType").on("change", function() {
+       alert($(this).val()); 
+    });
+    
     $("#iterationModifiers a#addIteration").on("click", function() {
         var nextIteration = $("#iterations input").length + 1;
         $("#iterations").append('<div><label>Iteration ' + nextIteration + '</label><input type="text" value=""></input></div>');
