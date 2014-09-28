@@ -205,7 +205,19 @@ $(document).ready(function() {
                     max: maxCumY,
                     numberTicks: 6
                 }        
-            }
+            },
+            fillBetween: {
+                series1: 2,
+                series2: 3,
+                // color: Optional, defaults to fillColor of series1.
+                color: "rgba(0, 200, 200, 0.15)",
+                // baseSeries:  Optional.  Put fill on a layer below this series
+                // index.  Defaults to 0 (first series).  If an index higher than 0 is
+                // used, fill will hide series below it.
+                baseSeries: 0,
+                // fill:  Optional, defaults to true.  False to turn off fill. 
+                fill: true
+            },
         });
     }
     
