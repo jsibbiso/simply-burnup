@@ -36,6 +36,21 @@ var MonteCarlo = {
     }
 }
 
+var Lines = {
+    makeBurnUpLine: function(startIteration, finishIteration, startPoints, endPoints) {
+        var longestLikelihood = [];
+        var curr = startPoints;
+        var llinterval = (endPoints - startPoints) / (finishIteration - startIteration);
+        for(i = startIteration ; curr < endPoints ; i++ ) {
+            longestLikelihood[i-startIteration] = [i,curr];
+            curr += llinterval;
+        }
+        longestLikelihood[i-startIteration] = [i,curr]; // Add last iteration
+        
+        return longestLikelihood;
+    }
+}
+
 $(document).ready(function() {
     var ddata = function() {
         var rawVelocityData = [];
@@ -131,8 +146,12 @@ $(document).ready(function() {
         $("#monte").empty();
         $("#monte").append("<h4>Likelihood of completion</h4>");
         
-        var key, chance, cumulativeChance = 0;  
+        var key, chance, cumulativeChance = 0, minLikelyIteration = 999;  
         for(key in dataResults.monteCarlo) {
+            if (parseInt(key) < minLikelyIteration) {
+                minLikelyIteration = parseInt(key);
+            }
+            
             chance = dataResults.monteCarlo[key] / 1000;
             cumulativeChance += chance;
             $("#monte").append("<p>In iteration " + key + ": " + chance.toFixed(0) + "% and by iteration " + key + ": " + cumulativeChance.toFixed(0) + "%</p>");
@@ -142,6 +161,7 @@ $(document).ready(function() {
         
         var maxY = Math.round(dataResults.maxValue * 1.33 + (5 - dataResults.maxValue * 1.33 % 5));
         var maxCumY = Math.round(maxBurnupValue * 1.1 + (5 - maxBurnupValue * 1.1 % 5));
+
         var maxLikelyIteration = parseInt(key);
         var maxCumX = Math.round(maxLikelyIteration + (5 - maxLikelyIteration % 5)); 
         
@@ -165,7 +185,12 @@ $(document).ready(function() {
         for(var i=0 ; i < maxLikelyIteration ; i++ ) {
             totalScope[i] = [i+1,dataResults.totalScope];
         }
+        
+        var longestLikelihood = Lines.makeBurnUpLine(dataResults.iterations, maxLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
+        var shortestLikelihood = Lines.makeBurnUpLine(dataResults.iterations, minLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
         dataResults.burnUpData.push(totalScope);
+        dataResults.burnUpData.push(shortestLikelihood);
+        dataResults.burnUpData.push(longestLikelihood);
         
         burnUpPlot.replot({
             data: dataResults.burnUpData,
