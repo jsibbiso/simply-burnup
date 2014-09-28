@@ -37,18 +37,31 @@ var MonteCarlo = {
 }
 
 var Lines = {
-    makeLine: function(x1, x2, y1, y2) {
-        var longestLikelihood = [];
+    makeLine: function(x1, x2, y1, y2max) {
+        var line = [];
         var curr = y1;
-        var llinterval = (y2 - y1) / (x2 - x1);
-        for(i = x1 ; curr < y2 ; i++ ) {
-            longestLikelihood[i-x1] = [i,curr];
+        var llinterval = (y2max - y1) / (x2 - x1);
+        for(i = x1 ; curr < y2max ; i++ ) {
+            line[i-x1] = [i,curr];
             curr += llinterval;
         }
-        longestLikelihood[i-x1] = [i,y2]; // Add last iteration
+        line[i-x1] = [i,y2max]; // Add last iteration
         
-        return longestLikelihood;
-    }
+        return line;
+    },
+    makeLineUsingYInterval: function(x1, x2, y1, y2max, yInterval) {
+        var line = [];
+        var curr = y1;
+
+        for(i = x1 ; curr < y2max ; i++ ) {
+            line[i-x1] = [i,curr];
+            curr += yInterval;
+        }
+        line[i-x1] = [i,y2max]; // Add last iteration
+        
+        return line;
+    },
+    
 }
 
 $(document).ready(function() {
@@ -143,8 +156,8 @@ $(document).ready(function() {
     var replot = function() {
         var dataResults = ddata();
         
-        $("#monte").empty();
-        $("#monte").append("<h4>Likelihood of completion</h4>");
+        $("#monteCarloResults").empty();
+        $("#monteCarloResults").append("<h4>Likelihood of completion</h4>");
         
         var key, chance, cumulativeChance = 0, minLikelyIteration = 999;  
         for(key in dataResults.monteCarlo) {
@@ -154,7 +167,7 @@ $(document).ready(function() {
             
             chance = dataResults.monteCarlo[key] / 1000;
             cumulativeChance += chance;
-            $("#monte").append("<p>In iteration " + key + ": " + chance.toFixed(0) + "% and by iteration " + key + ": " + cumulativeChance.toFixed(0) + "%</p>");
+            $("#monteCarloResults").append("<p>In iteration " + key + ": " + chance.toFixed(0) + "% and by iteration " + key + ": " + cumulativeChance.toFixed(0) + "%</p>");
         }
         
         var maxBurnupValue = Math.max(dataResults.totalScope, dataResults.maxCumValue);
@@ -243,13 +256,8 @@ $(document).ready(function() {
             fillBetween: {
                 series1: 2,
                 series2: 3,
-                // color: Optional, defaults to fillColor of series1.
                 color: "rgba(0, 200, 200, 0.15)",
-                // baseSeries:  Optional.  Put fill on a layer below this series
-                // index.  Defaults to 0 (first series).  If an index higher than 0 is
-                // used, fill will hide series below it.
                 baseSeries: 0,
-                // fill:  Optional, defaults to true.  False to turn off fill. 
                 fill: true
             },
         });
