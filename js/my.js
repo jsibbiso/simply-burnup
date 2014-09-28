@@ -37,15 +37,15 @@ var MonteCarlo = {
 }
 
 var Lines = {
-    makeBurnUpLine: function(startIteration, finishIteration, startPoints, endPoints) {
+    makeLine: function(x1, x2, y1, y2) {
         var longestLikelihood = [];
-        var curr = startPoints;
-        var llinterval = (endPoints - startPoints) / (finishIteration - startIteration);
-        for(i = startIteration ; curr < endPoints ; i++ ) {
-            longestLikelihood[i-startIteration] = [i,curr];
+        var curr = y1;
+        var llinterval = (y2 - y1) / (x2 - x1);
+        for(i = x1 ; curr < y2 ; i++ ) {
+            longestLikelihood[i-x1] = [i,curr];
             curr += llinterval;
         }
-        longestLikelihood[i-startIteration] = [i,curr]; // Add last iteration
+        longestLikelihood[i-x1] = [i,y2]; // Add last iteration
         
         return longestLikelihood;
     }
@@ -196,8 +196,8 @@ $(document).ready(function() {
             totalScope[i] = [i+1,dataResults.totalScope];
         }
         
-        var longestLikelihood = Lines.makeBurnUpLine(dataResults.iterations, maxLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
-        var shortestLikelihood = Lines.makeBurnUpLine(dataResults.iterations, minLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
+        var longestLikelihood = Lines.makeLine(dataResults.iterations, maxLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
+        var shortestLikelihood = Lines.makeLine(dataResults.iterations, minLikelyIteration, dataResults.maxCumValue, dataResults.totalScope);
         dataResults.burnUpData.push(totalScope);
         dataResults.burnUpData.push(shortestLikelihood);
         dataResults.burnUpData.push(longestLikelihood);
